@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 1000" role="img" aria-labelledby="title desc">
+  <title id="title">Editorial illustration</title>
+  <desc id="desc">Abstract gradient illustration for a blog landing page.</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" x2="1" y1="0" y2="1">
+      <stop offset="0%" stop-color="#f5f5f5"/>
+      <stop offset="100%" stop-color="#e7e5e4"/>
+    </linearGradient>
+    <linearGradient id="panel" x1="0" x2="1" y1="0" y2="1">
+      <stop offset="0%" stop-color="#18181b"/>
+      <stop offset="100%" stop-color="#3f3f46"/>
+    </linearGradient>
+  </defs>
+  <rect width="800" height="1000" fill="url(#bg)"/>
+  <circle cx="612" cy="168" r="152" fill="#d4d4d8" opacity="0.7"/>
+  <rect x="96" y="124" width="596" height="732" rx="42" fill="url(#panel)"/>
+  <rect x="160" y="238" width="350" height="24" rx="12" fill="#a1a1aa" opacity="0.9"/>
+  <rect x="160" y="286" width="430" height="24" rx="12" fill="#d4d4d8" opacity="0.8"/>
+  <rect x="160" y="340" width="280" height="18" rx="9" fill="#71717a" opacity="0.9"/>
+  <rect x="160" y="402" width="440" height="180" rx="24" fill="#fafaf9" opacity="0.9"/>
+  <rect x="182" y="434" width="142" height="12" rx="6" fill="#3f3f46" opacity="0.8"/>
+  <rect x="182" y="470" width="248" height="12" rx="6" fill="#a1a1aa"/>
+  <rect x="182" y="510" width="206" height="12" rx="6" fill="#d4d4d8"/>
+  <rect x="160" y="644" width="180" height="116" rx="18" fill="#e4e4e7"/>
+  <rect x="368" y="644" width="180" height="116" rx="18" fill="#d4d4d8"/>
+</svg>
