@@ -1,57 +1,51 @@
 import { AxiosError, isAxiosError } from "axios";
 
-
 /**
- * this file wraps any error thrown during an API call into one consistent shape.
- * 
- * pages and service never inspect raw axios errors. they read "statusCode" 
- * and "displayMessage" from this class instead
- * 
+ * Wraps any error thrown during an API call into one consistent shape.
+ *
+ * Pages and services never inspect raw axios errors. They read `statusCode`
+ * and `displayMessage` from this class instead.
+ *
  * @example
  * const err = new appHttpErr(caughtError);
- * setError(err.displayMEssage);
+ * setError(err.displayMessage);
  */
-
 export class appHttpErr extends Error {
-    /**the original thrown value ,kept for debugging and status extraction */
-    private readonly _originalError : unknown;
+    /** The original thrown value, kept for debugging and status extraction. */
+    private readonly _originalError: unknown;
 
     /**
-     * 
-     * @param error anything catch in a 'catch' block (always 'unknown' in ts)
+     * @param error Anything caught in a `catch` block (always `unknown` in TS).
      */
-
-
-    constructor(error : unknown) {
+    constructor(error: unknown) {
         super(error instanceof Error ? error.message : "unknown error, we coocked");
-        this.name= "appHttpErr"
-        this._originalError= error;
-
+        this.name = "appHttpErr";
+        this._originalError = error;
     }
 
-    /**true when the original error came from axios */
+    /** True when the original error came from axios. */
     get isAxiosError(): boolean {
         return isAxiosError(this._originalError);
-
     }
 
     /**
-     * a real HTTP status (400, 401, 404, ...) when the server responsed
-     * 0 when no response arrived (server down, network lost, CORS)
-     * -1 when the error did not come from axios at all (a bug in our code)
+     * Numeric status of the failure:
+     * - a real HTTP status (400, 401, 404, ...) when the server responded
+     * - `0` when no response arrived (server down, network lost, CORS)
+     * - `-1` when the error did not come from axios at all (a bug in our code)
      */
-    get statusCode(): number{
-        if (!this.isAxiosError){
+    get statusCode(): number {
+        if (!this.isAxiosError) {
             return -1;
         }
-        
+
         return (this._originalError as AxiosError).response?.status ?? 0;
     }
 
-    /**and we show message for the current statusCode */
-    get displayMessage(): string{
-        switch(this.statusCode){
-                case 0:
+    /** User-facing message for the current `statusCode`. */
+    get displayMessage(): string {
+        switch (this.statusCode) {
+            case 0:
                 return "Unable to connect to the server. Please try again later.";
             case 400:
                 return "Invalid request data.";
@@ -75,23 +69,25 @@ export class appHttpErr extends Error {
     }
 
     /**
-     * and finally sends the user to /<statusCode>?source=<current url>
-     * client-only it uses window , so never call it in a server component
-     * use it for data pages (e.g. a missing post), not for form errors.
+     * Sends the user to `/<statusCode>?source=<current url>`.
+     *
+     * Client-only: it reads `window`, so it does nothing on the server.
+     * Pass a navigation function (for example from `useRouter`) instead of
+     * assigning `window.location.href`, which would reload the whole page.
+     * Use it for data pages (e.g. a missing post), not for form errors.
+     *
+     * @param navigate Function that performs the client-side navigation.
+     *
+     * @example
+     * const router = useRouter();
+     * if (!result.isOK) result.error.redirect((url) => router.push(url));
      */
-    redirect(): void {
-
-        /**
-         * check if window exist
-         */
-        if (typeof window === "undefined"){
+    redirect(navigate: (url: string) => void): void {
+        if (typeof window === "undefined") {
             return;
         }
+
         const source = encodeURIComponent(window.location.href);
-        window.location.href = `/${this.statusCode}?source=${source}`;
+        navigate(`/${this.statusCode}?source=${source}`);
     }
 }
-
-/**
- * btw "window" is a browser object that gives us access to the current page URL.
- */

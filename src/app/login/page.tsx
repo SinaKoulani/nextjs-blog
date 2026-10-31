@@ -1,13 +1,20 @@
-
 "use client";
 
 import { useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import { LoginForm } from "@/components/shadcn/login-form";
-import { safeCall } from "@/api/err/safe-call";
-import { getAuth } from "@/api/generated/auth/auth";
 import { loginSchema } from "@/lib/validations/auth-test";
+import { getAuth } from "@/api/generated/auth/auth";
+import { safeCall } from "@/api/err/safe-call";
 
+const { authControllerLogin } = getAuth();
+
+/**
+ * Login page.
+ * Form values are validated with zod (src/lib/validations/auth-test.ts),
+ * then sent through the generated Orval client.
+ * API errors are handled by safeCall and appHttpErr (src/api/err/).
+ */
 export default function LoginPage() {
   const router = useRouter();
   const [error, setError] = useState<string | null>(null);
@@ -18,55 +25,37 @@ export default function LoginPage() {
     setError(null);
     setIsSubmitting(true);
 
+    const formData = new FormData(event.currentTarget);
+    const result = loginSchema.safeParse({
+      email: formData.get("email"),
+      password: formData.get("password"),
+    });
 
-    /**
-     * Validate form data with Zod.
-     * API errors are handled by safeCall and appHttpErr.
-     *
-     * Validation schema:
-     * src/lib/validations/auth-test.ts
-     *
-     * Error handling:
-     * src/api/err/
-     */
-    try {
-      const formData = new FormData(event.currentTarget);
-
-      const validation = loginSchema.safeParse({
-        email: formData.get("email"),
-        password: formData.get("password"),
-      });
-
-      if (!validation.success) {
-        setError(
-          validation.error.issues[0]?.message ?? "Invalid form data"
-        );
-        return;
-      }
-
-      const result = await safeCall(() =>
-        getAuth().authControllerLogin(validation.data)
-      );
-
-      if (!result.isOK) {
-        setError(result.error.displayMessage);
-        return;
-      }
-
-      router.push("/profile");
-    } finally {
+    if (!result.success) {
+      setError(result.error.issues[0].message);
       setIsSubmitting(false);
+      return;
     }
+
+    const response = await safeCall(() => authControllerLogin(result.data));
+    setIsSubmitting(false);
+
+    if (!response.isOK) {
+      setError(
+        response.error.statusCode === 401
+          ? "Invalid email or password."
+          : response.error.displayMessage,
+      );
+      return;
+    }
+
+    router.push("/profile");
   }
 
   return (
     <div className="flex min-h-svh flex-col items-center justify-center bg-muted p-6 md:p-10">
       <div className="w-full max-w-sm md:max-w-4xl">
-        <LoginForm
-          onSubmit={handleSubmit}
-          isSubmitting={isSubmitting}
-          error={error}
-        />
+        <LoginForm onSubmit={handleSubmit} isSubmitting={isSubmitting} error={error} />
       </div>
     </div>
   );

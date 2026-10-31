@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, type FormEvent } from "react";
@@ -8,6 +7,14 @@ import { signupSchema } from "@/lib/validations/auth-test";
 import { getAuth } from "@/api/generated/auth/auth";
 import { safeCall } from "@/api/err/safe-call";
 
+const { authControllerRegister } = getAuth();
+
+/**
+ * Signup page.
+ * Form values are validated with zod (src/lib/validations/auth-test.ts),
+ * then sent through the generated Orval client.
+ * API errors are handled by safeCall and appHttpErr (src/api/err/).
+ */
 export default function SignupPage() {
   const router = useRouter();
   const [error, setError] = useState<string | null>(null);
@@ -18,50 +25,38 @@ export default function SignupPage() {
     setError(null);
     setIsSubmitting(true);
 
+    const formData = new FormData(event.currentTarget);
+    const validation = signupSchema.safeParse({
+      firstName: formData.get("firstName"),
+      lastName: formData.get("lastName"),
+      email: formData.get("email"),
+      password: formData.get("password"),
+      confirmPassword: formData.get("confirm-password"),
+    });
 
-    /**
-     * Validate form data with Zod.
-     * API errors are handled by safeCall and appHttpErr.
-     *
-     * Validation schema:
-     * src/lib/validations/auth-test.ts
-     *
-     * Error handling:
-     * src/api/err/
-     */
-    try {
-      const formData = new FormData(event.currentTarget);
-
-      const payload = {
-        firstName: String(formData.get("firstName") ?? ""),
-        lastName: String(formData.get("lastName") ?? ""),
-        email: String(formData.get("email") ?? ""),
-        password: String(formData.get("password") ?? ""),
-        confirmPassword: String(formData.get("confirm-password") ?? ""),
-      };
-
-      const validation = signupSchema.safeParse(payload);
-
-      if (!validation.success) {
-        setError(validation.error.issues[0]?.message ?? "Invalid form data");
-        return;
-      }
-
-      const { confirmPassword, ...registerDto } = validation.data;
-
-      const result = await safeCall(() =>
-        getAuth().authControllerRegister(registerDto)
-      );
-
-      if (!result.isOK) {
-        setError(result.error.displayMessage);
-        return;
-      }
-
-      router.push("/login");
-    } finally {
+    if (!validation.success) {
+      setError(validation.error.issues[0]?.message ?? "Invalid form data");
       setIsSubmitting(false);
+      return;
     }
+
+    const { firstName, lastName, email, password } = validation.data;
+
+    const result = await safeCall(() =>
+      authControllerRegister({ firstName, lastName, email, password }),
+    );
+    setIsSubmitting(false);
+
+    if (!result.isOK) {
+      setError(
+        result.error.statusCode === 409
+          ? "An account with this email already exists."
+          : result.error.displayMessage,
+      );
+      return;
+    }
+
+    router.push("/login");
   }
 
   return (
