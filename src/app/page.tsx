@@ -29,7 +29,7 @@ const quickLinks = ["AI workflows", "Remote teams", "UX systems", "Build in publ
 export default function Home() {
   return (
     <main className="min-h-screen bg-background text-foreground">
-      <header className="border-b bg-white/80 backdrop-blur-sm">
+      <header className="border-b border-border bg-background/80 backdrop-blur-sm">
         <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-5">
           <Link href="/" className="text-lg font-semibold tracking-tight">
             Northstar Journal
