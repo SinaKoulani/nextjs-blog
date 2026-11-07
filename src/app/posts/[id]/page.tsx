@@ -2,16 +2,21 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { connection } from "next/server";
 import { fetchPublishedPost } from "@/api/services/posts.service";
+import { fetchInitialBlocks } from "@/api/services/block.service";
+import type { Block } from "@/types/block.type";
 
+/**
+ * Route props passed to the individual post page.
+ */
 type PostPageProps = {
   params: Promise<{ id: string }>;
 };
 
 /**
- * Formats an ISO date string for display.
+ * Formats an ISO date string into a human-readable date.
  *
- * @param iso Date string returned by the backend.
- * @returns A readable date, or `null` when the value is not a valid date.
+ * @param iso - ISO date string to format.
+ * @returns A localized display date, or null if the value is invalid.
  */
 function formatDate(iso: string): string | null {
   const date = new Date(iso);
@@ -28,15 +33,39 @@ function formatDate(iso: string): string | null {
 }
 
 /**
- * Public page for one published post (`/posts/[id]`), rendered as a Server Component.
+ * Renders a single content block for the post body.
  *
- * - `params` is a Promise in Next.js 16, so it is awaited.
- * - A non-integer or non-positive id calls `notFound()` without contacting the
- *   backend. A 400 or 404 from the backend does the same.
- * - Any other backend failure is shown inline with `appHttpErr.displayMessage`.
- * - `connection()` makes the page render on every request, so the backend is
- *   never called at build time.
- * - The post body (blocks) is not rendered yet.
+ * @param props - The block to render.
+ * @returns A JSX element representing the block content.
+ */
+function BlockView({ block }: { block: Block }) {
+  if (block.type === "image") {
+    return (
+      <div
+        role="img"
+        aria-label="Image not available yet"
+        className="flex h-48 items-center justify-center rounded-xl border border-dashed border-border bg-muted text-sm text-muted-foreground"
+      >
+        Image not available yet
+      </div>
+    );
+  }
+
+  if (!block.content) {
+    return null;
+  }
+
+  return <p className="leading-7">{block.content}</p>;
+}
+
+/**
+ * Server component for displaying a single published post.
+ *
+ * Resolves the route param, validates the post id, fetches the post and its
+ * initial content blocks, and renders the result or a not-found/error state.
+ *
+ * @param props - Route params containing the post id.
+ * @returns The post page UI.
  */
 export default async function PostPage({ params }: PostPageProps) {
   await connection();
@@ -48,31 +77,46 @@ export default async function PostPage({ params }: PostPageProps) {
     notFound();
   }
 
-  const result = await fetchPublishedPost(postId);
+  const [postResult, blocksResult] = await Promise.all([
+    fetchPublishedPost(postId),
+    fetchInitialBlocks(postId),
+  ]);
 
-  if (!result.isOK) {
-    if (result.error.statusCode === 400 || result.error.statusCode === 404) {
+  if (!postResult.isOK) {
+    if (
+      postResult.error.statusCode === 400 ||
+      postResult.error.statusCode === 404
+    ) {
       notFound();
     }
 
     return (
       <main className="mx-auto flex min-h-screen max-w-3xl flex-col px-6 py-16">
-        <Link href="/posts" className="text-sm text-muted-foreground hover:underline">
+        <Link
+          href="/posts"
+          className="text-sm text-muted-foreground hover:underline"
+        >
           Back to posts
         </Link>
-        <p role="alert" className="mt-6 text-sm text-destructive">
-          {result.error.displayMessage}
+        <p role="alert" className="mt-6 text-sm text-red-700">
+          {postResult.error.displayMessage}
         </p>
       </main>
     );
   }
 
-  const post = result.data;
+  const post = postResult.data;
   const createdAt = formatDate(post.createdAt);
+  const blocks = blocksResult.isOK
+    ? [...blocksResult.data].sort((a, b) => a.position - b.position)
+    : [];
 
   return (
     <main className="mx-auto flex min-h-screen max-w-3xl flex-col px-6 py-16">
-      <Link href="/posts" className="text-sm text-muted-foreground hover:underline">
+      <Link
+        href="/posts"
+        className="text-sm text-muted-foreground hover:underline"
+      >
         Back to posts
       </Link>
 
@@ -88,6 +132,20 @@ export default async function PostPage({ params }: PostPageProps) {
         {post.excerpt ? (
           <p className="mt-6 text-lg text-muted-foreground">{post.excerpt}</p>
         ) : null}
+
+        <div className="mt-10 space-y-6">
+          {!blocksResult.isOK ? (
+            <p role="alert" className="text-sm text-red-700">
+              {blocksResult.error.displayMessage}
+            </p>
+          ) : blocks.length === 0 ? (
+            <p className="text-sm text-muted-foreground">
+              This post has no content yet.
+            </p>
+          ) : (
+            blocks.map((block) => <BlockView key={block.id} block={block} />)
+          )}
+        </div>
       </article>
     </main>
   );

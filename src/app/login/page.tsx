@@ -6,6 +6,7 @@ import { LoginForm } from "@/components/shadcn/login-form";
 import { loginSchema } from "@/lib/validations/auth-test";
 import { getAuth } from "@/api/generated/auth/auth";
 import { safeCall } from "@/api/err/safe-call";
+import { extractToken, setToken } from "@/api/auth.token";
 
 const { authControllerLogin } = getAuth();
 
@@ -49,6 +50,14 @@ export default function LoginPage() {
       return;
     }
 
+    const token = extractToken(response.data as unknown);
+
+    if (!token) {
+      setError("Login succeeded, but no token was received.");
+      return;
+    }
+
+    setToken(token);
     router.push("/profile");
   }
 
