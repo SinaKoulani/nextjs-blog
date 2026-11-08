@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { Suspense } from "react";
 import { connection } from "next/server";
-import { fetchPublishedPosts } from "@/api/services/posts.service";
+import { fetchPublishedPosts } from "@/api/services/public/posts.service";
 
 export const metadata: Metadata = {
   title: "Posts",
@@ -93,7 +93,7 @@ async function PostsList() {
  * Public list of published posts.
  *
  * The page shell is static; the list streams in through `<Suspense>`.
- * Data comes from `fetchPublishedPosts` (src/api/services/posts.service.ts).
+ * Data comes from `fetchPublishedPosts` (src/api/services/public/posts.service.ts).
  */
 export default function PostsPage() {
   return (

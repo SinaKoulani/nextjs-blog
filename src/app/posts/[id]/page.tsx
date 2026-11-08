@@ -2,8 +2,8 @@ import Link from "next/link";
 import { Suspense } from "react";
 import { notFound } from "next/navigation";
 import { connection } from "next/server";
-import { fetchPublishedPost } from "@/api/services/posts.service";
-import { fetchInitialBlocks } from "@/api/services/block.service";
+import { fetchPublishedPost } from "@/api/services/public/posts.service";
+import { fetchInitialBlocks } from "@/api/services/public/blocks.service";
 import type { Block } from "@/types/block.type";
 
 /**

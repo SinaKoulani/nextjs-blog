@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { Button } from "@/components/shadcn/ui/button";
 import { Field, FieldGroup, FieldLabel } from "@/components/shadcn/ui/field";
 import { Input } from "@/components/shadcn/ui/input";
-import { updateMyProfile } from "@/api/services/user.service";
+import { updateMyProfile } from "@/api/services/public/profile.service";
 import { clearToken } from "@/api/auth.token";
 import { profileSchema } from "@/lib/validations/profile-test";
 import type { UpdateMyProfileDto } from "@/api/generated/nestBlogApi.schemas";

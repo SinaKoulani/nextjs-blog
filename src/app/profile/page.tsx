@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import { RequireAuth } from "@/components/require-auth";
 import { LogoutButton } from "@/components/logout-button";
 import { ProfileEditForm } from "@/components/profile-edit-form";
-import { fetchMyProfile } from "@/api/services/user.service";
+import { fetchMyProfile } from "@/api/services/public/profile.service";
 import { clearToken } from "@/api/auth.token";
 import type { User } from "@/types/user.type";
 

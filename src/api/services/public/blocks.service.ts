@@ -1,10 +1,11 @@
 import type { Block } from "@/types/block.type";
-import type { HttpResponseType } from "../err/http-response";
-import { getBlocks } from "../generated/blocks/blocks";
-import { safeCall } from "../err/safe-call";
+import type { BlocksControllerGetNextBlocksParams } from "@/api/generated/nestBlogApi.schemas";
+import type { HttpResponseType } from "@/api/err/http-response";
+import { getBlocks } from "@/api/generated/blocks/blocks";
+import { safeCall } from "@/api/err/safe-call";
 
-const { blocksControllerGetInitialBlocks } = getBlocks();
-
+const { blocksControllerGetInitialBlocks, blocksControllerGetNextBlocks } =
+  getBlocks();
 
 /**
  * Fetches the initial content blocks of a published post
@@ -26,8 +27,6 @@ const { blocksControllerGetInitialBlocks } = getBlocks();
  * const result = await fetchInitialBlocks(1);
  * if (result.isOK) console.log(result.data.length);
  */
-
-
 export function fetchInitialBlocks(
   postId: number,
 ): Promise<HttpResponseType<Block[]>> {
@@ -35,7 +34,26 @@ export function fetchInitialBlocks(
     const data: unknown = await blocksControllerGetInitialBlocks(postId);
 
     if (!Array.isArray(data)) {
-      throw new Error("Unexpected response shape from GET /posts/{postId}/blocks");
+      throw new Error(
+        "Unexpected response shape from GET /posts/{postId}/blocks",
+      );
+    }
+
+    return data as Block[];
+  });
+}
+
+export function fetchNextBlocks(
+  postId: number,
+  params: BlocksControllerGetNextBlocksParams,
+): Promise<HttpResponseType<Block[]>> {
+  return safeCall(async () => {
+    const data: unknown = await blocksControllerGetNextBlocks(postId, params);
+
+    if (!Array.isArray(data)) {
+      throw new Error(
+        "Unexpected response shape from GET /posts/{postId}/blocks/next",
+      );
     }
 
     return data as Block[];
