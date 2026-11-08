@@ -56,7 +56,7 @@ const authControllerLogout = (
   /**
  * @summary Change the current user password
  */
-const authControllerChangepassword = (
+const authControllerChangePassword = (
     changePasswordDto: ChangePasswordDto,
  ) => {
       return customInstance<void>(
@@ -66,8 +66,8 @@ const authControllerChangepassword = (
     },
       );
     }
-  return {authControllerRegister,authControllerLogin,authControllerLogout,authControllerChangepassword}};
+  return {authControllerRegister,authControllerLogin,authControllerLogout,authControllerChangePassword}};
 export type AuthControllerRegisterResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getAuth>['authControllerRegister']>>>
 export type AuthControllerLoginResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getAuth>['authControllerLogin']>>>
 export type AuthControllerLogoutResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getAuth>['authControllerLogout']>>>
-export type AuthControllerChangepasswordResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getAuth>['authControllerChangepassword']>>>
+export type AuthControllerChangePasswordResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getAuth>['authControllerChangePassword']>>>

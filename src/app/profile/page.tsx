@@ -80,6 +80,12 @@ function ProfileContent() {
           >
             Back to home
           </Link>
+          <Link
+            href="/profile/password"
+            className="rounded-full border border-border px-4 py-2 text-sm font-medium"
+          >
+            Change password
+          </Link>
           <LogoutButton />
         </div>
       </div>

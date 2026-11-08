@@ -5,8 +5,6 @@
  * Api documentation for the Nest Blog project
  * OpenAPI spec version: 1.0
  */
-
-
 export interface RegisterDto {
   /**
    * User first name
