@@ -1,5 +1,17 @@
 const TOKEN_KEY = "auth_token";
 const TOKEN_FIELDS = ["accessToken", "access_token", "token"] as const;
+
+/**
+ * Fired on `window` whenever the token is set or cleared in this tab.
+ * The native `storage` event only reaches other tabs, so same-tab
+ * listeners (like the site header) subscribe to this one as well.
+ */
+export const AUTH_CHANGE_EVENT = "auth-token-change";
+
+function notifyAuthChange(): void {
+  window.dispatchEvent(new Event(AUTH_CHANGE_EVENT));
+}
+
 export function getToken(): string | null {
   if (typeof window === "undefined") {
     return null;
@@ -9,10 +21,12 @@ export function getToken(): string | null {
 
 export function setToken(token: string): void {
   window.localStorage.setItem(TOKEN_KEY, token);
+  notifyAuthChange();
 }
 
 export function clearToken(): void {
   window.localStorage.removeItem(TOKEN_KEY);
+  notifyAuthChange();
 }
 
 export function extractToken(data: unknown): string | null {

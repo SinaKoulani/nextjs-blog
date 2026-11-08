@@ -34,33 +34,6 @@ const quickLinks = [
 export default function Home() {
   return (
     <main className="min-h-screen bg-background text-foreground">
-      <header className="border-b border-border bg-background/80 backdrop-blur-sm">
-        <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-5">
-          <Link href="/" className="text-lg font-semibold tracking-tight">
-            Northstar Journal
-          </Link>
-          <nav className="hidden items-center gap-6 text-sm text-muted-foreground md:flex">
-            <Link href="/">Home</Link>
-            <Link href="/login">Login</Link>
-            <Link href="/signup">Sign up</Link>
-          </nav>
-          <div className="flex items-center gap-3">
-            <Link
-              href="/login"
-              className="hidden rounded-full border border-border px-4 py-2 text-sm font-medium text-foreground md:inline-flex"
-            >
-              Sign in
-            </Link>
-            <Link
-              href="/signup"
-              className="inline-flex rounded-full bg-foreground px-4 py-2 text-sm font-medium text-background"
-            >
-              Join now
-            </Link>
-          </div>
-        </div>
-      </header>
-
       <section className="mx-auto grid max-w-6xl gap-10 px-6 py-16 md:grid-cols-[1.25fr_0.75fr] md:py-24">
         <div className="space-y-8">
           <div className="inline-flex items-center rounded-full bg-muted px-3 py-1 text-xs font-medium text-muted-foreground">
