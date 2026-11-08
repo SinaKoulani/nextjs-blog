@@ -24,7 +24,12 @@ const featuredPosts = [
   },
 ];
 
-const quickLinks = ["AI workflows", "Remote teams", "UX systems", "Build in public"];
+const quickLinks = [
+  "AI workflows",
+  "Remote teams",
+  "UX systems",
+  "Build in public",
+];
 
 export default function Home() {
   return (
@@ -66,7 +71,8 @@ export default function Home() {
               Notes from the edge of product, code, and craft.
             </h1>
             <p className="max-w-lg text-lg leading-8 text-muted-foreground">
-              Fresh perspectives, practical systems, and stories from teams shipping thoughtfully in a noisy world.
+              Fresh perspectives, practical systems, and stories from teams
+              shipping thoughtfully in a noisy world.
             </p>
           </div>
           <div className="flex flex-wrap gap-3">
@@ -98,18 +104,25 @@ export default function Home() {
             <span>12 min</span>
           </div>
           <div className="space-y-4">
-            <div className="rounded-2xl bg-gradient-to-br from-zinc-900 via-zinc-700 to-zinc-500 p-6 text-zinc-50">
+            <div className="rounded-2xl bg-linear-to-br from-zinc-900 via-zinc-700 to-zinc-500 p-6 text-zinc-50">
               <div className="mb-4 inline-flex rounded-full bg-white/10 px-2.5 py-1 text-[10px] uppercase tracking-[0.2em] text-zinc-200">
                 Product design
               </div>
-              <h2 className="text-2xl font-semibold">The quiet systems behind durable teams</h2>
+              <h2 className="text-2xl font-semibold">
+                The quiet systems behind durable teams
+              </h2>
             </div>
             <p className="text-sm leading-7 text-muted-foreground">
-              The strongest products rarely come from bursts of brilliance. They emerge from reliable rituals, clear ownership, and a realistic pace.
+              The strongest products rarely come from bursts of brilliance. They
+              emerge from reliable rituals, clear ownership, and a realistic
+              pace.
             </p>
             <div className="flex flex-wrap gap-2">
               {quickLinks.map((item) => (
-                <span key={item} className="rounded-full border border-border bg-background px-2.5 py-1 text-xs text-muted-foreground">
+                <span
+                  key={item}
+                  className="rounded-full border border-border bg-background px-2.5 py-1 text-xs text-muted-foreground"
+                >
                   {item}
                 </span>
               ))}
@@ -120,21 +133,33 @@ export default function Home() {
 
       <section className="mx-auto max-w-6xl px-6 pb-20">
         <div className="mb-8 flex items-center justify-between">
-          <h2 className="text-2xl font-semibold tracking-tight">Latest articles</h2>
+          <h2 className="text-2xl font-semibold tracking-tight">
+            Latest articles
+          </h2>
           <Link href="/signup" className="text-sm font-medium text-foreground">
             Subscribe
           </Link>
         </div>
         <div className="grid gap-6 md:grid-cols-3">
           {featuredPosts.map((post) => (
-            <article key={post.title} className="rounded-2xl border border-border bg-card p-5 shadow-sm">
+            <article
+              key={post.title}
+              className="rounded-2xl border border-border bg-card p-5 shadow-sm"
+            >
               <div className="mb-4 flex items-center justify-between text-xs uppercase tracking-[0.12em] text-muted-foreground">
                 <span>{post.category}</span>
                 <span>{post.readTime}</span>
               </div>
-              <h3 className="text-xl font-semibold leading-snug text-foreground">{post.title}</h3>
-              <p className="mt-3 text-sm leading-7 text-muted-foreground">{post.excerpt}</p>
-              <Link href="/login" className="mt-5 inline-flex text-sm font-medium text-foreground">
+              <h3 className="text-xl font-semibold leading-snug text-foreground">
+                {post.title}
+              </h3>
+              <p className="mt-3 text-sm leading-7 text-muted-foreground">
+                {post.excerpt}
+              </p>
+              <Link
+                href="/login"
+                className="mt-5 inline-flex text-sm font-medium text-foreground"
+              >
                 Read article →
               </Link>
             </article>

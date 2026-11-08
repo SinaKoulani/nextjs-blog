@@ -1,9 +1,11 @@
 import { getUsers } from "@/api/generated/users/users";
+import type { UpdateMyProfileDto } from "@/api/generated/nestBlogApi.schemas";
 import { safeCall } from "@/api/err/safe-call";
 import type { HttpResponseType } from "@/api/err/http-response";
 import type { User } from "@/types/user.type";
 
-const { usersControllerGetMyProfile } = getUsers();
+const { usersControllerGetMyProfile, usersControllerUpdateMyProfile } =
+  getUsers();
 
 export function fetchMyProfile(): Promise<HttpResponseType<User>> {
   return safeCall(async () => {
@@ -15,4 +17,10 @@ export function fetchMyProfile(): Promise<HttpResponseType<User>> {
 
     return data as User;
   });
+}
+
+export function updateMyProfile(
+  dto: UpdateMyProfileDto,
+): Promise<HttpResponseType<void>> {
+  return safeCall(() => usersControllerUpdateMyProfile(dto));
 }

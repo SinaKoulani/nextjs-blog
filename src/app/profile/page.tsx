@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { RequireAuth } from "@/components/require-auth";
 import { LogoutButton } from "@/components/logout-button";
+import { ProfileEditForm } from "@/components/profile-edit-form";
 import { fetchMyProfile } from "@/api/services/user.service";
 import { clearToken } from "@/api/auth.token";
 import type { User } from "@/types/user.type";
@@ -32,6 +33,7 @@ function getName(user: User): string {
 function ProfileContent() {
   const router = useRouter();
   const [state, setState] = useState<ProfileState>({ status: "loading" });
+  const [editing, setEditing] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -59,6 +61,24 @@ function ProfileContent() {
       cancelled = true;
     };
   }, [router]);
+
+  async function reload() {
+    const result = await fetchMyProfile();
+
+    if (result.isOK) {
+      setState({ status: "ready", user: result.data });
+      setEditing(false);
+      return;
+    }
+
+    if (result.error.statusCode === 401) {
+      clearToken();
+      router.replace("/login");
+      return;
+    }
+
+    setState({ status: "error", message: result.error.displayMessage });
+  }
 
   return (
     <main className="mx-auto flex min-h-screen max-w-4xl flex-col px-6 py-16">
@@ -102,20 +122,37 @@ function ProfileContent() {
 
       {state.status === "ready" ? (
         <section className="rounded-2xl border border-border bg-card p-6">
-          <div className="mb-5 flex h-16 w-16 items-center justify-center rounded-full bg-foreground text-lg font-semibold text-background">
-            {getInitials(state.user)}
-          </div>
-          <h2 className="text-xl font-semibold">{getName(state.user)}</h2>
-          {state.user.bio ? (
-            <p className="mt-2 text-sm text-muted-foreground">
-              {state.user.bio}
-            </p>
-          ) : null}
-          <div className="mt-6 space-y-3 text-sm text-muted-foreground">
-            <p>{state.user.email}</p>
-            {state.user.phone ? <p>{state.user.phone}</p> : null}
-            {state.user.website ? <p>{state.user.website}</p> : null}
-          </div>
+          {editing ? (
+            <ProfileEditForm
+              user={state.user}
+              onSavedAction={reload}
+              onCancelAction={() => setEditing(false)}
+            />
+          ) : (
+            <>
+              <div className="mb-5 flex h-16 w-16 items-center justify-center rounded-full bg-foreground text-lg font-semibold text-background">
+                {getInitials(state.user)}
+              </div>
+              <h2 className="text-xl font-semibold">{getName(state.user)}</h2>
+              {state.user.bio ? (
+                <p className="mt-2 text-sm text-muted-foreground">
+                  {state.user.bio}
+                </p>
+              ) : null}
+              <div className="mt-6 space-y-3 text-sm text-muted-foreground">
+                <p>{state.user.email}</p>
+                {state.user.phone ? <p>{state.user.phone}</p> : null}
+                {state.user.website ? <p>{state.user.website}</p> : null}
+              </div>
+              <button
+                type="button"
+                onClick={() => setEditing(true)}
+                className="mt-6 rounded-full border border-border px-4 py-2 text-sm font-medium"
+              >
+                Edit profile
+              </button>
+            </>
+          )}
         </section>
       ) : null}
     </main>
