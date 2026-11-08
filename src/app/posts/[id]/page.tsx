@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { Suspense } from "react";
 import { notFound } from "next/navigation";
 import { connection } from "next/server";
 import { fetchPublishedPost } from "@/api/services/posts.service";
@@ -59,15 +60,16 @@ function BlockView({ block }: { block: Block }) {
 }
 
 /**
- * Server component for displaying a single published post.
+ * Request-time part of the post page (Server Component).
  *
  * Resolves the route param, validates the post id, fetches the post and its
  * initial content blocks, and renders the result or a not-found/error state.
+ * Must be rendered inside a `<Suspense>` boundary.
  *
  * @param props - Route params containing the post id.
  * @returns The post page UI.
  */
-export default async function PostPage({ params }: PostPageProps) {
+async function PostContent({ params }: PostPageProps) {
   await connection();
 
   const { id } = await params;
@@ -148,5 +150,33 @@ export default async function PostPage({ params }: PostPageProps) {
         </div>
       </article>
     </main>
+  );
+}
+
+/**
+ * Page for a single published post.
+ *
+ * The route params are passed down as a promise and awaited inside the
+ * `<Suspense>` boundary, so nothing request-specific blocks the prerender.
+ *
+ * @param props - Route params containing the post id.
+ */
+export default function PostPage({ params }: PostPageProps) {
+  return (
+    <Suspense
+      fallback={
+        <main className="mx-auto flex min-h-screen max-w-3xl flex-col px-6 py-16">
+          <Link
+            href="/posts"
+            className="text-sm text-muted-foreground hover:underline"
+          >
+            Back to posts
+          </Link>
+          <p className="mt-6 text-sm text-muted-foreground">Loading post...</p>
+        </main>
+      }
+    >
+      <PostContent params={params} />
+    </Suspense>
   );
 }
