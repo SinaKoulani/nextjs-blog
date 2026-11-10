@@ -1,4 +1,5 @@
 const TOKEN_KEY = "auth_token";
+const EXPIRED_KEY = "auth_expired";
 const TOKEN_FIELDS = ["accessToken", "access_token", "token"] as const;
 
 /**
@@ -27,6 +28,16 @@ export function setToken(token: string): void {
 export function clearToken(): void {
   window.localStorage.removeItem(TOKEN_KEY);
   notifyAuthChange();
+}
+
+export function markSessionExpired(): void {
+  window.sessionStorage.setItem(EXPIRED_KEY, "1");
+}
+
+export function consumeSessionExpired(): boolean {
+  const expired = window.sessionStorage.getItem(EXPIRED_KEY) === "1";
+  window.sessionStorage.removeItem(EXPIRED_KEY);
+  return expired;
 }
 
 export function extractToken(data: unknown): string | null {

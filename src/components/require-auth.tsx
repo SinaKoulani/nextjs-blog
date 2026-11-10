@@ -1,12 +1,22 @@
 "use client";
 import { useRouter } from "next/navigation";
-import { getToken } from "@/api/auth.token";
+import {
+  AUTH_CHANGE_EVENT,
+  consumeSessionExpired,
+  getToken,
+} from "@/api/auth.token";
 import { ReactNode, useEffect, useSyncExternalStore } from "react";
 
 type AuthStatus = "checking" | "authed" | "guest";
+
 function subscribe(onChange: () => void) {
   window.addEventListener("storage", onChange);
-  return () => window.removeEventListener("storage", onChange);
+  window.addEventListener(AUTH_CHANGE_EVENT, onChange);
+
+  return () => {
+    window.removeEventListener("storage", onChange);
+    window.removeEventListener(AUTH_CHANGE_EVENT, onChange);
+  };
 }
 
 function getSnapshot(): AuthStatus {
@@ -16,6 +26,7 @@ function getSnapshot(): AuthStatus {
 function getServerSnapshot(): AuthStatus {
   return "checking";
 }
+
 export function RequireAuth({ children }: { children: ReactNode }) {
   const router = useRouter();
   const status = useSyncExternalStore(
@@ -26,7 +37,7 @@ export function RequireAuth({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     if (status === "guest") {
-      router.replace("/login");
+      router.replace(consumeSessionExpired() ? "/login?expired=1" : "/login");
     }
   }, [status, router]);
 
