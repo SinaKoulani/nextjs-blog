@@ -115,7 +115,7 @@ function ProfileContent() {
       ) : null}
 
       {state.status === "error" ? (
-        <p role="alert" className="text-sm text-red-700">
+        <p role="alert" className="text-sm text-[#e06c75]">
           {state.message}
         </p>
       ) : null}

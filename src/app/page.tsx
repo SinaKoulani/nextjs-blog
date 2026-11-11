@@ -80,7 +80,7 @@ export default async function Home() {
               Featured story
             </div>
             <div className="space-y-4">
-              <div className="rounded-2xl bg-linear-to-br from-zinc-900 via-zinc-700 to-zinc-500 p-6 text-zinc-50">
+              <div className="rounded-2xl bg-linear-to-br from-[#323842] via-[#282c34] to-[#21252b] p-6 text-[#d7dae0]">
                 <h2 className="text-2xl font-semibold">{featured.title}</h2>
               </div>
               {featured.excerpt ? (

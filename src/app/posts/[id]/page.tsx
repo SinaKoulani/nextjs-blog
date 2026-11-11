@@ -100,7 +100,7 @@ async function PostContent({ params }: PostPageProps) {
         >
           Back to posts
         </Link>
-        <p role="alert" className="mt-6 text-sm text-red-700">
+        <p role="alert" className="mt-6 text-sm text-[#e06c75]">
           {postResult.error.displayMessage}
         </p>
       </main>
@@ -137,7 +137,7 @@ async function PostContent({ params }: PostPageProps) {
 
         <div className="mt-10 space-y-6">
           {!blocksResult.isOK ? (
-            <p role="alert" className="text-sm text-red-700">
+            <p role="alert" className="text-sm text-[#e06c75]">
               {blocksResult.error.displayMessage}
             </p>
           ) : blocks.length === 0 ? (

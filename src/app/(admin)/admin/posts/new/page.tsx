@@ -2,6 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
+import { Editor } from "@tinymce/tinymce-react";
 import { useEffect, useRef, useState } from "react";
 import { createPost } from "@/api/services/admin/posts.service";
 import { createPostSchema } from "@/lib/validations/post-test";
@@ -16,6 +17,7 @@ function parseIds(value: string): number[] {
 export default function NewPostPage() {
   const [title, setTitle] = useState("");
   const [excerpt, setExcerpt] = useState("");
+  const [content, setContent] = useState("");
   const [categoryIds, setCategoryIds] = useState("");
   const [tagIds, setTagIds] = useState("");
   const [isPublished, setIsPublished] = useState(false);
@@ -151,6 +153,57 @@ export default function NewPostPage() {
             className="w-full resize-none rounded-lg border border-[#3e4451] bg-[#282c34] px-3 py-2.5 text-sm text-[#d7dae0] outline-none transition-colors placeholder:text-[#5c6370] focus:border-[#d19a66]"
             placeholder="Short description of the post"
           />
+        </div>
+
+        <div>
+          <label
+            htmlFor="content"
+            className="mb-2 block text-sm font-medium text-[#abb2bf]"
+          >
+            Content
+          </label>
+
+          <div className="overflow-hidden rounded-lg border border-[#3e4451] bg-white">
+            <Editor
+              id="content"
+              value={content}
+              onEditorChange={setContent}
+              init={{
+                height: 500,
+                menubar: true,
+                plugins: [
+                  "advlist",
+                  "autolink",
+                  "lists",
+                  "link",
+                  "image",
+                  "charmap",
+                  "preview",
+                  "anchor",
+                  "searchreplace",
+                  "visualblocks",
+                  "code",
+                  "fullscreen",
+                  "insertdatetime",
+                  "media",
+                  "table",
+                  "help",
+                  "wordcount",
+                ],
+                toolbar:
+                  "undo redo | blocks | bold italic underline | " +
+                  "alignleft aligncenter alignright alignjustify | " +
+                  "bullist numlist | link image media table | code fullscreen | removeformat",
+                branding: false,
+                promotion: false,
+              }}
+            />
+          </div>
+
+          <p className="mt-1.5 text-xs text-[#5c6370]">
+            Post content is currently kept in the form. The API must return the
+            created post ID before this content can be saved as a text block.
+          </p>
         </div>
 
         <div>
