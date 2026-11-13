@@ -51,10 +51,6 @@ export function ChangePasswordForm() {
     setIsSubmitting(false);
 
     if (!result.isOK) {
-      if (result.error.statusCode === 401) {
-        setErrors({ currentPassword: "Current password is incorrect" });
-        return;
-      }
       setFormError(result.error.displayMessage);
       return;
     }

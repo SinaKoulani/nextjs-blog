@@ -12,6 +12,8 @@ export interface Post {
   slug: string;
   /** Short summary; the backend allows `null`. */
   excerpt: string | null;
+  /** The initial text block content of the post, when available. */
+  content?: string | null;
   /** ISO date string. */
   createdAt: string;
   /** ISO date string. */

@@ -65,6 +65,7 @@ function toId(value: string | undefined): number | undefined {
 
 function parseFilters(params: SearchParams) {
   const search = first(params.search)?.trim() || undefined;
+  const searchTooLong = (search?.length ?? 0) > 100;
   const categoryId = toId(first(params.categoryId));
   const tagId = toId(first(params.tagId));
   const sort = SORT_OPTIONS.find(
@@ -73,7 +74,7 @@ function parseFilters(params: SearchParams) {
 
   const query: PostsControllerFindPublishedParams = {};
 
-  if (search) {
+  if (search && !searchTooLong) {
     query.search = search;
   }
 
@@ -92,11 +93,12 @@ function parseFilters(params: SearchParams) {
 
   return {
     search,
+    searchTooLong,
     categoryId,
     tagId,
     sortValue: sort?.value ?? "",
     query,
-    hasFilters: Object.keys(query).length > 0,
+    hasFilters: Object.keys(query).length > 0 || Boolean(search),
   };
 }
 
@@ -124,7 +126,7 @@ async function PostsContent({
   const filters = parseFilters(await searchParams);
 
   const [postsResult, categoriesResult, tagsResult] = await Promise.all([
-    fetchPublishedPosts(filters.query),
+    filters.searchTooLong ? Promise.resolve(null) : fetchPublishedPosts(filters.query),
     fetchPublicCategories(),
     fetchPublicTags(),
   ]);
@@ -141,6 +143,7 @@ async function PostsContent({
         <input
           name="search"
           defaultValue={filters.search ?? ""}
+          maxLength={100}
           placeholder="Search posts..."
           aria-label="Search posts"
           className="w-full rounded-md border bg-background px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-ring md:col-span-2"
@@ -211,9 +214,13 @@ async function PostsContent({
         </div>
       </form>
 
-      {!postsResult.isOK ? (
+      {filters.searchTooLong ? (
         <p role="alert" className="mt-6 text-sm text-destructive">
-          {postsResult.error.displayMessage}
+          Search must be 100 characters or fewer.
+        </p>
+      ) : !postsResult?.isOK ? (
+        <p role="alert" className="mt-6 text-sm text-destructive">
+          {postsResult?.error.displayMessage}
         </p>
       ) : postsResult.data.length === 0 ? (
         <p className="mt-6 text-sm text-muted-foreground">

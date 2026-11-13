@@ -50,13 +50,13 @@ export class appHttpErr extends Error {
             case 400:
                 return "Invalid request data.";
             case 401:
-                return "Invalid email or password.";
+                return "Authentication failed or is required for this request.";
             case 403:
                 return "You do not have permission to perform this action.";
             case 404:
                 return "The requested resource was not found.";
             case 409:
-                return "An account with this email already exists.";
+                return "This request conflicts with an existing resource.";
             case 422:
                 return "Please check the information you entered.";
             case 500:

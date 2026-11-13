@@ -97,9 +97,18 @@ export default function AdminTagsPage() {
 
     const tagsResponse = await fetchTags();
 
-    if (tagsResponse.isOK && tagsResponse.data.every(isTag)) {
-      setTags(tagsResponse.data);
+    if (!tagsResponse.isOK) {
+      setError(tagsResponse.error.displayMessage);
+      return;
     }
+
+    if (!tagsResponse.data.every(isTag)) {
+      setError("Unexpected response shape from GET /tags");
+      return;
+    }
+
+    setTags(tagsResponse.data);
+    setError("");
   }
 
   function startEditing(tag: Tag) {

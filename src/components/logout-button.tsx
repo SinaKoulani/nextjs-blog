@@ -14,7 +14,14 @@ export function LogoutButton() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   async function handleClick() {
     setIsSubmitting(true);
-    await safeCall(() => authControllerLogout());
+    const response = await safeCall(() => authControllerLogout());
+
+    if (!response.isOK) {
+      window.alert(
+        `The logout request failed: ${response.error.displayMessage} Your local session has been cleared.`,
+      );
+    }
+
     clearToken();
     router.push("/login");
   }

@@ -91,7 +91,6 @@ export default function EditPostPage() {
     const response = await updatePost(id, {
       title: trimmedTitle,
       slug: trimmedSlug || undefined,
-      excerpt: trimmedExcerpt || undefined,
     });
 
     setIsSubmitting(false);
@@ -191,6 +190,10 @@ export default function EditPostPage() {
             className="w-full resize-none rounded-lg border border-[#3e4451] bg-[#282c34] px-3 py-2.5 text-sm text-[#d7dae0] outline-none transition-colors placeholder:text-[#5c6370] focus:border-[#d19a66]"
             placeholder="Short description of the post"
           />
+          <p className="mt-1.5 text-xs text-[#5c6370]">
+            The current update schema describes excerpt as an object, so text
+            cannot be safely sent with the documented contract.
+          </p>
         </div>
 
         <div>
@@ -239,8 +242,8 @@ export default function EditPostPage() {
           </div>
 
           <p className="mt-1.5 text-xs text-[#5c6370]">
-            Post content is currently kept in the form. The API must return the
-            post blocks before existing content can be loaded and updated.
+            The Blocks API does not document its response shape, so existing
+            content cannot be safely loaded or updated here.
           </p>
         </div>
 

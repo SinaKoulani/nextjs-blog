@@ -63,7 +63,7 @@ export function ProfileEditForm({
     for (const name of FIELDS) {
       const value = parsed.data[name];
       const current = user[name] ?? "";
-      if (value !== "" && value !== current) {
+      if (value !== current) {
         payload[name] = value;
       }
     }

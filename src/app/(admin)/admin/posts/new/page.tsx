@@ -201,8 +201,8 @@ export default function NewPostPage() {
           </div>
 
           <p className="mt-1.5 text-xs text-[#5c6370]">
-            Post content is currently kept in the form. The API must return the
-            created post ID before this content can be saved as a text block.
+            The create-post API does not document a response containing the
+            created post ID, so this content cannot be saved as a text block.
           </p>
         </div>
 

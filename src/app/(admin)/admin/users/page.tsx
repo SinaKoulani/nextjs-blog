@@ -6,6 +6,7 @@ import {
   fetchUsers,
   updateUser,
 } from "@/api/services/admin/users.service";
+import type { UpdateUserDto } from "@/api/generated/nestBlogApi.schemas";
 import type { User } from "@/types/user.type";
 
 function isUser(value: unknown): value is User {
@@ -75,31 +76,52 @@ export default function AdminUsersPage() {
     const firstName = editFirstName.trim();
     const lastName = editLastName.trim();
     const email = editEmail.trim();
+    const user = users.find((currentUser) => currentUser.id === id);
 
     setUpdateError("");
 
-    if (!firstName) {
-      setUpdateError("First name is required.");
+    if (!user) {
+      setUpdateError("User not found.");
       return;
     }
 
-    if (!lastName) {
-      setUpdateError("Last name is required.");
+    if (firstName.length > 100) {
+      setUpdateError("First name is too long.");
       return;
     }
 
-    if (!email) {
+    if (lastName.length > 100) {
+      setUpdateError("Last name is too long.");
+      return;
+    }
+
+    if (email !== user.email && !email) {
       setUpdateError("Email is required.");
+      return;
+    }
+
+    const payload: UpdateUserDto = {};
+
+    if (firstName !== (user.firstName ?? "")) {
+      payload.firstName = firstName;
+    }
+
+    if (lastName !== (user.lastName ?? "")) {
+      payload.lastName = lastName;
+    }
+
+    if (email !== user.email) {
+      payload.email = email;
+    }
+
+    if (Object.keys(payload).length === 0) {
+      setUpdateError("No changes to save.");
       return;
     }
 
     setIsUpdating(true);
 
-    const response = await updateUser(id, {
-      firstName,
-      lastName,
-      email,
-    });
+    const response = await updateUser(id, payload);
 
     setIsUpdating(false);
 
@@ -113,9 +135,7 @@ export default function AdminUsersPage() {
         user.id === id
           ? {
               ...user,
-              firstName,
-              lastName,
-              email,
+              ...payload,
             }
           : user,
       ),
@@ -218,6 +238,7 @@ export default function AdminUsersPage() {
                               onChange={(event) =>
                                 setEditFirstName(event.target.value)
                               }
+                              maxLength={100}
                               disabled={isUpdating}
                               placeholder="First name"
                               className="w-full max-w-xs rounded-lg border border-[#3e4451] bg-[#282c34] px-3 py-2 text-sm text-[#abb2bf] outline-none focus:border-[#d19a66] disabled:opacity-50"
@@ -229,6 +250,7 @@ export default function AdminUsersPage() {
                               onChange={(event) =>
                                 setEditLastName(event.target.value)
                               }
+                              maxLength={100}
                               disabled={isUpdating}
                               placeholder="Last name"
                               className="w-full max-w-xs rounded-lg border border-[#3e4451] bg-[#282c34] px-3 py-2 text-sm text-[#abb2bf] outline-none focus:border-[#d19a66] disabled:opacity-50"

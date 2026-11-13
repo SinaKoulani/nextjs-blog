@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import { connection } from "next/server";
 import { fetchPublishedPost } from "@/api/services/public/posts.service";
 import { fetchInitialBlocks } from "@/api/services/public/blocks.service";
+import { PostViewTracker } from "@/components/post-view-tracker";
 import type { Block } from "@/types/block.type";
 
 /**
@@ -115,6 +116,7 @@ async function PostContent({ params }: PostPageProps) {
 
   return (
     <main className="mx-auto flex min-h-screen max-w-3xl flex-col px-6 py-16">
+      <PostViewTracker postId={postId} />
       <Link
         href="/posts"
         className="text-sm text-muted-foreground hover:underline"

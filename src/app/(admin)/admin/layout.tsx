@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import Link from "next/link";
 import { RequireAuth } from "@/components/require-auth";
 
 type AdminLayoutProps = {
@@ -20,47 +21,47 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
 
             <nav className="p-4">
               <div className="space-y-1">
-                <a
+                <Link
                   href="/admin"
                   className="block rounded-lg px-3 py-2.5 text-sm text-[#abb2bf] transition-colors hover:bg-[#d19a66]/10 hover:text-[#d19a66]"
                 >
                   Dashboard
-                </a>
+                </Link>
 
-                <a
+                <Link
                   href="/admin/posts"
                   className="block rounded-lg px-3 py-2.5 text-sm text-[#abb2bf] transition-colors hover:bg-[#d19a66]/10 hover:text-[#d19a66]"
                 >
                   Posts
-                </a>
+                </Link>
 
-                <a
+                <Link
                   href="/admin/categories"
                   className="block rounded-lg px-3 py-2.5 text-sm text-[#abb2bf] transition-colors hover:bg-[#d19a66]/10 hover:text-[#d19a66]"
                 >
                   Categories
-                </a>
+                </Link>
 
-                <a
+                <Link
                   href="/admin/tags"
                   className="block rounded-lg px-3 py-2.5 text-sm text-[#abb2bf] transition-colors hover:bg-[#d19a66]/10 hover:text-[#d19a66]"
                 >
                   Tags
-                </a>
+                </Link>
 
-                <a
+                <Link
                   href="/admin/users"
                   className="block rounded-lg px-3 py-2.5 text-sm text-[#abb2bf] transition-colors hover:bg-[#d19a66]/10 hover:text-[#d19a66]"
                 >
                   Users
-                </a>
+                </Link>
 
-                <a
+                <Link
                   href="/admin/stats"
                   className="block rounded-lg px-3 py-2.5 text-sm text-[#abb2bf] transition-colors hover:bg-[#d19a66]/10 hover:text-[#d19a66]"
                 >
                   Stats
-                </a>
+                </Link>
               </div>
             </nav>
           </aside>

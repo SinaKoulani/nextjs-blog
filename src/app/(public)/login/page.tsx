@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, type FormEvent } from "react";
+import { Suspense, useState, type FormEvent } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { LoginForm } from "@/components/shadcn/login-form";
 import { loginSchema } from "@/lib/validations/auth-test";
@@ -17,6 +17,14 @@ const { authControllerLogin } = getAuth();
  * API errors are handled by safeCall and appHttpErr (src/api/err/).
  */
 export default function LoginPage() {
+  return (
+    <Suspense fallback={null}>
+      <LoginPageContent />
+    </Suspense>
+  );
+}
+
+function LoginPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
 

@@ -11,7 +11,7 @@ import {
 type Category = {
   id: number;
   name: string;
-  description: Record<string, unknown> | null;
+  description?: unknown;
 };
 
 function isCategory(value: unknown): value is Category {
@@ -22,6 +22,37 @@ function isCategory(value: unknown): value is Category {
   const category = value as Partial<Category>;
 
   return typeof category.id === "number" && typeof category.name === "string";
+}
+
+function parseDescription(
+  value: string,
+):
+  | { isValid: true; description: Record<string, unknown> | null }
+  | { isValid: false } {
+  const trimmedValue = value.trim();
+
+  if (!trimmedValue) {
+    return { isValid: true, description: null };
+  }
+
+  try {
+    const description: unknown = JSON.parse(trimmedValue);
+
+    if (
+      typeof description !== "object" ||
+      description === null ||
+      Array.isArray(description)
+    ) {
+      return { isValid: false };
+    }
+
+    return {
+      isValid: true,
+      description: description as Record<string, unknown>,
+    };
+  } catch {
+    return { isValid: false };
+  }
 }
 
 export default function AdminCategoriesPage() {
@@ -88,11 +119,18 @@ export default function AdminCategoriesPage() {
       return;
     }
 
+    const parsedDescription = parseDescription(trimmedDescription);
+
+    if (!parsedDescription.isValid) {
+      setCreateError("Description must be a valid JSON object.");
+      return;
+    }
+
     setIsCreating(true);
 
     const response = await createCategory({
       name: trimmedName,
-      description: trimmedDescription ? { text: trimmedDescription } : null,
+      description: parsedDescription.description,
     });
 
     setIsCreating(false);
@@ -108,18 +146,27 @@ export default function AdminCategoriesPage() {
 
     const categoriesResponse = await fetchCategories();
 
-    if (categoriesResponse.isOK && categoriesResponse.data.every(isCategory)) {
-      setCategories(categoriesResponse.data);
+    if (!categoriesResponse.isOK) {
+      setError(categoriesResponse.error.displayMessage);
+      return;
     }
+
+    if (!categoriesResponse.data.every(isCategory)) {
+      setError("Unexpected response shape from GET /categories");
+      return;
+    }
+
+    setCategories(categoriesResponse.data);
+    setError("");
   }
 
   function startEditing(category: Category) {
     setEditingId(category.id);
     setEditName(category.name);
     setEditDescription(
-      typeof category.description?.text === "string"
-        ? category.description.text
-        : "",
+      category.description === null || category.description === undefined
+        ? ""
+        : JSON.stringify(category.description) ?? "",
     );
     setEditError("");
   }
@@ -152,11 +199,18 @@ export default function AdminCategoriesPage() {
       return;
     }
 
+    const parsedDescription = parseDescription(trimmedDescription);
+
+    if (!parsedDescription.isValid) {
+      setEditError("Description must be a valid JSON object.");
+      return;
+    }
+
     setIsUpdating(true);
 
     const response = await updateCategory(id, {
       name: trimmedName,
-      description: trimmedDescription ? { text: trimmedDescription } : null,
+      description: parsedDescription.description,
     });
 
     setIsUpdating(false);
@@ -172,9 +226,7 @@ export default function AdminCategoriesPage() {
           ? {
               ...category,
               name: trimmedName,
-              description: trimmedDescription
-                ? { text: trimmedDescription }
-                : null,
+              description: parsedDescription.description,
             }
           : category,
       ),
@@ -213,11 +265,13 @@ export default function AdminCategoriesPage() {
   }
 
   function getDescription(category: Category) {
-    if (typeof category.description?.text === "string") {
-      return category.description.text;
+    if (category.description === null || category.description === undefined) {
+      return "—";
     }
 
-    return "—";
+    return typeof category.description === "string"
+      ? category.description
+      : JSON.stringify(category.description) ?? "—";
   }
 
   return (
@@ -271,9 +325,12 @@ export default function AdminCategoriesPage() {
               id="category-description"
               value={description}
               onChange={(event) => setDescription(event.target.value)}
-              placeholder="Category description"
+              placeholder="JSON object"
               className="w-full rounded-lg border border-[#3e4451] bg-[#282c34] px-3 py-2.5 text-sm text-[#abb2bf] outline-none placeholder:text-[#5c6370] focus:border-[#d19a66]"
             />
+            <p className="mt-1.5 text-xs text-[#5c6370]">
+              Enter a JSON object; leave blank to send null.
+            </p>
           </div>
         </div>
 
@@ -347,6 +404,7 @@ export default function AdminCategoriesPage() {
                               onChange={(event) =>
                                 setEditDescription(event.target.value)
                               }
+                              placeholder="JSON object"
                               className="w-full rounded-lg border border-[#3e4451] bg-[#282c34] px-3 py-2 text-sm text-[#abb2bf] outline-none focus:border-[#d19a66]"
                             />
 
