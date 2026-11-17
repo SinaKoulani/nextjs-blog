@@ -6,13 +6,37 @@ import {
   deletePost,
   fetchAdminPosts,
 } from "@/api/services/admin/posts.service";
+import {
+  fetchPostAnalytics,
+  getPostViewCount,
+} from "@/api/services/admin/analytics.service";
 import type { Post } from "@/types/post.type";
+
+type PostStatusFilter = "all" | "published" | "draft";
+type PostViewState =
+  | { status: "loading" }
+  | { status: "ready"; count: number | null }
+  | { status: "error"; message: string };
 
 export default function AdminPostsPage() {
   const [posts, setPosts] = useState<Post[]>([]);
+  const [postViews, setPostViews] = useState<Record<number, PostViewState>>({});
+  const [statusFilter, setStatusFilter] = useState<PostStatusFilter>("all");
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState("");
   const [deletingPostId, setDeletingPostId] = useState<number | null>(null);
+
+  const filteredPosts = posts.filter((post) => {
+    if (statusFilter === "published") {
+      return post.isPublished;
+    }
+
+    if (statusFilter === "draft") {
+      return !post.isPublished;
+    }
+
+    return true;
+  });
 
   useEffect(() => {
     async function loadPosts() {
@@ -26,6 +50,29 @@ export default function AdminPostsPage() {
 
       setPosts(response.data);
       setIsLoading(false);
+
+      const publishedPosts = response.data.filter((post) => post.isPublished);
+      setPostViews(
+        Object.fromEntries(
+          publishedPosts.map((post) => [post.id, { status: "loading" }]),
+        ),
+      );
+
+      await Promise.all(
+        publishedPosts.map(async (post) => {
+          const analytics = await fetchPostAnalytics(post.id);
+
+          setPostViews((current) => ({
+            ...current,
+            [post.id]: analytics.isOK
+              ? {
+                  status: "ready",
+                  count: getPostViewCount(analytics.data),
+                }
+              : { status: "error", message: analytics.error.displayMessage },
+          }));
+        }),
+      );
     }
 
     loadPosts();
@@ -56,6 +103,26 @@ export default function AdminPostsPage() {
     );
 
     setDeletingPostId(null);
+  }
+
+  function renderViewCount(post: Post) {
+    if (!post.isPublished) {
+      return "—";
+    }
+
+    const viewState = postViews[post.id];
+
+    if (!viewState || viewState.status === "loading") {
+      return "Loading...";
+    }
+
+    if (viewState.status === "error") {
+      return <span title={viewState.message}>Unavailable</span>;
+    }
+
+    return viewState.count === null
+      ? "Unavailable"
+      : viewState.count.toLocaleString();
   }
 
   return (
@@ -100,6 +167,40 @@ export default function AdminPostsPage() {
       )}
 
       {!isLoading && !error && posts.length > 0 && (
+        <div className="flex flex-wrap gap-2" aria-label="Filter posts by status">
+          {(
+            [
+              ["all", "All"],
+              ["published", "Published"],
+              ["draft", "Drafts"],
+            ] as const
+          ).map(([filter, label]) => (
+            <button
+              key={filter}
+              type="button"
+              aria-pressed={statusFilter === filter}
+              onClick={() => setStatusFilter(filter)}
+              className={`rounded-lg border px-4 py-2 text-sm font-medium transition-colors ${
+                statusFilter === filter
+                  ? "border-[#d19a66] bg-[#d19a66] text-[#282c34]"
+                  : "border-[#3e4451] text-[#abb2bf] hover:bg-[#282c34]"
+              }`}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
+      )}
+
+      {!isLoading && !error && posts.length > 0 && filteredPosts.length === 0 && (
+        <div className="rounded-2xl border border-[#3e4451] bg-[#21252b] p-8 text-center">
+          <p className="text-sm text-[#828997]">
+            No {statusFilter === "published" ? "published posts" : "drafts"} found.
+          </p>
+        </div>
+      )}
+
+      {!isLoading && !error && filteredPosts.length > 0 && (
         <div className="overflow-hidden rounded-2xl border border-[#3e4451] bg-[#21252b] shadow-lg shadow-black/20">
           <div className="overflow-x-auto">
             <table className="w-full text-left text-sm">
@@ -111,6 +212,14 @@ export default function AdminPostsPage() {
 
                   <th className="px-4 py-3 font-medium text-[#828997]">
                     Slug
+                  </th>
+
+                  <th className="px-4 py-3 font-medium text-[#828997]">
+                    Status
+                  </th>
+
+                  <th className="px-4 py-3 font-medium text-[#828997]">
+                    Views
                   </th>
 
                   <th className="px-4 py-3 font-medium text-[#828997]">
@@ -128,7 +237,7 @@ export default function AdminPostsPage() {
               </thead>
 
               <tbody className="divide-y divide-[#3e4451]">
-                {posts.map((post) => (
+                {filteredPosts.map((post) => (
                   <tr
                     key={post.id}
                     className="transition-colors hover:bg-[#282c34]"
@@ -149,6 +258,22 @@ export default function AdminPostsPage() {
                       {post.slug}
                     </td>
 
+                    <td className="px-4 py-4">
+                      <span
+                        className={`rounded-full px-2.5 py-1 text-xs font-medium ${
+                          post.isPublished
+                            ? "bg-green-500/10 text-green-400"
+                            : "bg-yellow-500/10 text-yellow-400"
+                        }`}
+                      >
+                        {post.isPublished ? "Published" : "Draft"}
+                      </span>
+                    </td>
+
+                    <td className="px-4 py-4 text-xs text-[#828997]">
+                      {renderViewCount(post)}
+                    </td>
+
                     <td className="px-4 py-4 text-xs text-[#828997]">
                       {new Date(post.createdAt).toLocaleDateString()}
                     </td>
@@ -164,6 +289,13 @@ export default function AdminPostsPage() {
                           className="text-xs font-medium text-[#d19a66] hover:text-[#e5ad7b] hover:underline"
                         >
                           Edit
+                        </Link>
+
+                        <Link
+                          href={`/admin/analytics/posts/${post.id}`}
+                          className="text-xs font-medium text-[#d19a66] hover:text-[#e5ad7b] hover:underline"
+                        >
+                          Views
                         </Link>
 
                         <button

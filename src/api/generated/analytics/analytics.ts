@@ -8,7 +8,7 @@
 import type {
   AnalyticsControllerGetDailyViewsParams,
   AnalyticsControllerGetPopularPostsParams,
-  AnalyticsControllerGetPostStatsParams
+  AnalyticsControllerGetPostAnalyticsParams
 } from '../nestBlogApi.schemas';
 
 import { customInstance } from '../../axios-manual-api-fetch';
@@ -42,11 +42,11 @@ const analyticsControllerGetOverview = (
     }
   /**
  * Returns analytics for a specific post within the optional date range.
- * @summary Get statistics for a post
+ * @summary Get analytics for a post
  */
-const analyticsControllerGetPostStats = (
+const analyticsControllerGetPostAnalytics = (
     postId: number,
-    params?: AnalyticsControllerGetPostStatsParams,
+    params?: AnalyticsControllerGetPostAnalyticsParams,
  ) => {
       return customInstance<void>(
       {url: `/analytics/posts/${postId}`, method: 'GET',
@@ -68,8 +68,8 @@ const analyticsControllerGetPopularPosts = (
       );
     }
   /**
- * Returns daily view statistics for the optional date range.
- * @summary Get daily views
+ * Returns daily view analytics for the optional date range.
+ * @summary Get daily analytics
  */
 const analyticsControllerGetDailyViews = (
     params?: AnalyticsControllerGetDailyViewsParams,
@@ -80,9 +80,9 @@ const analyticsControllerGetDailyViews = (
     },
       );
     }
-  return {analyticsControllerRecordVisit,analyticsControllerGetOverview,analyticsControllerGetPostStats,analyticsControllerGetPopularPosts,analyticsControllerGetDailyViews}};
+  return {analyticsControllerRecordVisit,analyticsControllerGetOverview,analyticsControllerGetPostAnalytics,analyticsControllerGetPopularPosts,analyticsControllerGetDailyViews}};
 export type AnalyticsControllerRecordVisitResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getAnalytics>['analyticsControllerRecordVisit']>>>
 export type AnalyticsControllerGetOverviewResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getAnalytics>['analyticsControllerGetOverview']>>>
-export type AnalyticsControllerGetPostStatsResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getAnalytics>['analyticsControllerGetPostStats']>>>
+export type AnalyticsControllerGetPostAnalyticsResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getAnalytics>['analyticsControllerGetPostAnalytics']>>>
 export type AnalyticsControllerGetPopularPostsResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getAnalytics>['analyticsControllerGetPopularPosts']>>>
 export type AnalyticsControllerGetDailyViewsResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getAnalytics>['analyticsControllerGetDailyViews']>>>

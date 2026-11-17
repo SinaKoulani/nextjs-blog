@@ -2,6 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { Editor } from "@tinymce/tinymce-react";
 import { useEffect, useRef, useState } from "react";
 import { createPost } from "@/api/services/admin/posts.service";
@@ -15,6 +16,7 @@ function parseIds(value: string): number[] {
 }
 
 export default function NewPostPage() {
+  const router = useRouter();
   const [title, setTitle] = useState("");
   const [excerpt, setExcerpt] = useState("");
   const [content, setContent] = useState("");
@@ -94,7 +96,7 @@ export default function NewPostPage() {
       return;
     }
 
-    setMessage("Post created successfully.");
+    router.push("/admin/posts");
   }
 
   return (

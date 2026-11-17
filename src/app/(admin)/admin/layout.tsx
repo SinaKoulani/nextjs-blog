@@ -57,10 +57,10 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
                 </Link>
 
                 <Link
-                  href="/admin/stats"
+                  href="/admin/analytics"
                   className="block rounded-lg px-3 py-2.5 text-sm text-[#abb2bf] transition-colors hover:bg-[#d19a66]/10 hover:text-[#d19a66]"
                 >
-                  Stats
+                  Analytics
                 </Link>
               </div>
             </nav>

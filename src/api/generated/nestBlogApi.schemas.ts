@@ -143,13 +143,6 @@ export interface UpdatePostDto {
   tagIds?: number[];
 }
 
-/**
- * A description of the category
- * @maxLength 5000
- * @nullable
- */
-export type CreateCategoryDtoDescription = { [key: string]: unknown } | null;
-
 export interface CreateCategoryDto {
   /**
    * The name of the category
@@ -162,15 +155,8 @@ export interface CreateCategoryDto {
    * @maxLength 5000
    * @nullable
    */
-  description?: CreateCategoryDtoDescription;
+  description?: string | null;
 }
-
-/**
- * The updated description of the category
- * @maxLength 5000
- * @nullable
- */
-export type UpdateCategoryDtoDescription = { [key: string]: unknown } | null;
 
 export interface UpdateCategoryDto {
   /**
@@ -184,7 +170,7 @@ export interface UpdateCategoryDto {
    * @maxLength 5000
    * @nullable
    */
-  description?: UpdateCategoryDtoDescription;
+  description?: string | null;
 }
 
 export interface CreateTagDto {
@@ -305,7 +291,7 @@ export type BlocksControllerGetNextBlocksParams = {
 afterPosition: number;
 };
 
-export type AnalyticsControllerGetPostStatsParams = {
+export type AnalyticsControllerGetPostAnalyticsParams = {
 /**
  * Start date of the analytics date range (ISO 8601 format)
  */

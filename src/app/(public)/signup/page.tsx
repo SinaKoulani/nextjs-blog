@@ -6,8 +6,9 @@ import { SignupForm } from "@/components/shadcn/signup-form";
 import { signupSchema } from "@/lib/validations/auth-test";
 import { getAuth } from "@/api/generated/auth/auth";
 import { safeCall } from "@/api/err/safe-call";
+import { extractToken, setToken } from "@/api/auth.token";
 
-const { authControllerRegister } = getAuth();
+const { authControllerRegister, authControllerLogin } = getAuth();
 
 /**
  * Signup page.
@@ -42,21 +43,43 @@ export default function SignupPage() {
 
     const { firstName, lastName, email, password } = validation.data;
 
-    const result = await safeCall(() =>
+    const registerResult = await safeCall(() =>
       authControllerRegister({ firstName, lastName, email, password }),
     );
-    setIsSubmitting(false);
 
-    if (!result.isOK) {
+    if (!registerResult.isOK) {
       setError(
-        result.error.statusCode === 409
+        registerResult.error.statusCode === 409
           ? "An account with this email already exists."
-          : result.error.displayMessage,
+          : registerResult.error.displayMessage,
       );
+      setIsSubmitting(false);
       return;
     }
 
-    router.push("/login");
+    const loginResult = await safeCall(() =>
+      authControllerLogin({ email, password }),
+    );
+
+    if (!loginResult.isOK) {
+      setError("Account created, but automatic login failed. Please sign in.");
+      setIsSubmitting(false);
+      router.push("/login");
+      return;
+    }
+
+    const token = extractToken(loginResult.data as unknown);
+
+    if (!token) {
+      setError("Login succeeded, but no token was received. Please sign in.");
+      setIsSubmitting(false);
+      router.push("/login");
+      return;
+    }
+
+    setToken(token);
+    setIsSubmitting(false);
+    router.push("/");
   }
 
   return (

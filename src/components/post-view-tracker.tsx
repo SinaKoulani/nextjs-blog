@@ -2,7 +2,7 @@
 
 import { useEffect, useRef } from "react";
 import { getToken } from "@/api/auth.token";
-import { recordPostView } from "@/api/services/admin/stats.service";
+import { recordPostView } from "@/api/services/admin/analytics.service";
 
 export function PostViewTracker({ postId }: { postId: number }) {
   const trackedPostId = useRef<number | null>(null);

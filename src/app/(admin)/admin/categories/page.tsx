@@ -1,17 +1,16 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect, useState } from "react";
 import {
   createCategory,
-  deleteCategory,
   fetchCategories,
-  updateCategory,
 } from "@/api/services/admin/categories.service";
 
 type Category = {
   id: number;
   name: string;
-  description?: unknown;
+  description?: string | null;
 };
 
 function isCategory(value: unknown): value is Category {
@@ -21,38 +20,13 @@ function isCategory(value: unknown): value is Category {
 
   const category = value as Partial<Category>;
 
-  return typeof category.id === "number" && typeof category.name === "string";
-}
-
-function parseDescription(
-  value: string,
-):
-  | { isValid: true; description: Record<string, unknown> | null }
-  | { isValid: false } {
-  const trimmedValue = value.trim();
-
-  if (!trimmedValue) {
-    return { isValid: true, description: null };
-  }
-
-  try {
-    const description: unknown = JSON.parse(trimmedValue);
-
-    if (
-      typeof description !== "object" ||
-      description === null ||
-      Array.isArray(description)
-    ) {
-      return { isValid: false };
-    }
-
-    return {
-      isValid: true,
-      description: description as Record<string, unknown>,
-    };
-  } catch {
-    return { isValid: false };
-  }
+  return (
+    typeof category.id === "number" &&
+    typeof category.name === "string" &&
+    (category.description === undefined ||
+      category.description === null ||
+      typeof category.description === "string")
+  );
 }
 
 export default function AdminCategoriesPage() {
@@ -65,14 +39,6 @@ export default function AdminCategoriesPage() {
   const [isCreating, setIsCreating] = useState(false);
   const [createError, setCreateError] = useState("");
   const [createSuccess, setCreateSuccess] = useState("");
-
-  const [editingId, setEditingId] = useState<number | null>(null);
-  const [editName, setEditName] = useState("");
-  const [editDescription, setEditDescription] = useState("");
-  const [isUpdating, setIsUpdating] = useState(false);
-  const [editError, setEditError] = useState("");
-
-  const [deletingId, setDeletingId] = useState<number | null>(null);
 
   useEffect(() => {
     async function loadCategories() {
@@ -119,18 +85,11 @@ export default function AdminCategoriesPage() {
       return;
     }
 
-    const parsedDescription = parseDescription(trimmedDescription);
-
-    if (!parsedDescription.isValid) {
-      setCreateError("Description must be a valid JSON object.");
-      return;
-    }
-
     setIsCreating(true);
 
     const response = await createCategory({
       name: trimmedName,
-      description: parsedDescription.description,
+      description: trimmedDescription || null,
     });
 
     setIsCreating(false);
@@ -160,118 +119,12 @@ export default function AdminCategoriesPage() {
     setError("");
   }
 
-  function startEditing(category: Category) {
-    setEditingId(category.id);
-    setEditName(category.name);
-    setEditDescription(
-      category.description === null || category.description === undefined
-        ? ""
-        : JSON.stringify(category.description) ?? "",
-    );
-    setEditError("");
-  }
-
-  function cancelEditing() {
-    setEditingId(null);
-    setEditName("");
-    setEditDescription("");
-    setEditError("");
-  }
-
-  async function handleUpdateCategory(id: number) {
-    const trimmedName = editName.trim();
-    const trimmedDescription = editDescription.trim();
-
-    setEditError("");
-
-    if (!trimmedName) {
-      setEditError("Category name is required.");
-      return;
-    }
-
-    if (trimmedName.length > 100) {
-      setEditError("Category name is too long.");
-      return;
-    }
-
-    if (trimmedDescription.length > 5000) {
-      setEditError("Description is too long.");
-      return;
-    }
-
-    const parsedDescription = parseDescription(trimmedDescription);
-
-    if (!parsedDescription.isValid) {
-      setEditError("Description must be a valid JSON object.");
-      return;
-    }
-
-    setIsUpdating(true);
-
-    const response = await updateCategory(id, {
-      name: trimmedName,
-      description: parsedDescription.description,
-    });
-
-    setIsUpdating(false);
-
-    if (!response.isOK) {
-      setEditError(response.error.displayMessage);
-      return;
-    }
-
-    setCategories((current) =>
-      current.map((category) =>
-        category.id === id
-          ? {
-              ...category,
-              name: trimmedName,
-              description: parsedDescription.description,
-            }
-          : category,
-      ),
-    );
-
-    cancelEditing();
-  }
-
-  async function handleDeleteCategory(id: number) {
-    const confirmed = window.confirm(
-      "Are you sure you want to delete this category?",
-    );
-
-    if (!confirmed) {
-      return;
-    }
-
-    setDeletingId(id);
-
-    const response = await deleteCategory(id);
-
-    setDeletingId(null);
-
-    if (!response.isOK) {
-      setError(response.error.displayMessage);
-      return;
-    }
-
-    setCategories((current) =>
-      current.filter((category) => category.id !== id),
-    );
-
-    if (editingId === id) {
-      cancelEditing();
-    }
-  }
-
   function getDescription(category: Category) {
     if (category.description === null || category.description === undefined) {
       return "—";
     }
 
-    return typeof category.description === "string"
-      ? category.description
-      : JSON.stringify(category.description) ?? "—";
+    return category.description || "—";
   }
 
   return (
@@ -325,11 +178,12 @@ export default function AdminCategoriesPage() {
               id="category-description"
               value={description}
               onChange={(event) => setDescription(event.target.value)}
-              placeholder="JSON object"
+              maxLength={5000}
+              placeholder="Category description"
               className="w-full rounded-lg border border-[#3e4451] bg-[#282c34] px-3 py-2.5 text-sm text-[#abb2bf] outline-none placeholder:text-[#5c6370] focus:border-[#d19a66]"
             />
             <p className="mt-1.5 text-xs text-[#5c6370]">
-              Enter a JSON object; leave blank to send null.
+              Leave blank if the category has no description.
             </p>
           </div>
         </div>
@@ -371,113 +225,34 @@ export default function AdminCategoriesPage() {
           </div>
         ) : (
           <div className="overflow-x-auto">
-            <table className="w-full min-w-[700px] text-left">
+            <table className="w-full min-w-[500px] text-left">
               <thead>
                 <tr className="border-b border-[#3e4451] text-xs text-[#828997]">
                   <th className="px-6 py-4 font-medium">Name</th>
                   <th className="px-6 py-4 font-medium">Description</th>
-                  <th className="px-6 py-4 text-right font-medium">Actions</th>
                 </tr>
               </thead>
 
               <tbody className="divide-y divide-[#3e4451]">
-                {categories.map((category) => {
-                  const isEditing = editingId === category.id;
+                {categories.map((category) => (
+                  <tr
+                    key={category.id}
+                    className="transition-colors hover:bg-[#282c34]"
+                  >
+                    <td className="px-6 py-4 text-sm font-medium text-[#d7dae0]">
+                      <Link
+                        href={`/admin/categories/${category.id}`}
+                        className="hover:text-[#d19a66] hover:underline"
+                      >
+                        {category.name}
+                      </Link>
+                    </td>
 
-                  return (
-                    <tr key={category.id}>
-                      {isEditing ? (
-                        <>
-                          <td className="px-6 py-4 align-top">
-                            <input
-                              value={editName}
-                              onChange={(event) =>
-                                setEditName(event.target.value)
-                              }
-                              className="w-full rounded-lg border border-[#3e4451] bg-[#282c34] px-3 py-2 text-sm text-[#abb2bf] outline-none focus:border-[#d19a66]"
-                            />
-                          </td>
-
-                          <td className="px-6 py-4 align-top">
-                            <input
-                              value={editDescription}
-                              onChange={(event) =>
-                                setEditDescription(event.target.value)
-                              }
-                              placeholder="JSON object"
-                              className="w-full rounded-lg border border-[#3e4451] bg-[#282c34] px-3 py-2 text-sm text-[#abb2bf] outline-none focus:border-[#d19a66]"
-                            />
-
-                            {editError ? (
-                              <p className="mt-2 text-xs text-[#e06c75]">
-                                {editError}
-                              </p>
-                            ) : null}
-                          </td>
-
-                          <td className="px-6 py-4 align-top">
-                            <div className="flex justify-end gap-2">
-                              <button
-                                type="button"
-                                onClick={() =>
-                                  handleUpdateCategory(category.id)
-                                }
-                                disabled={isUpdating}
-                                className="rounded-lg bg-[#98c379] px-3 py-2 text-xs font-medium text-[#282c34] transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
-                              >
-                                {isUpdating ? "Saving..." : "Save"}
-                              </button>
-
-                              <button
-                                type="button"
-                                onClick={cancelEditing}
-                                disabled={isUpdating}
-                                className="rounded-lg border border-[#3e4451] px-3 py-2 text-xs font-medium text-[#abb2bf] hover:bg-[#282c34] disabled:cursor-not-allowed disabled:opacity-50"
-                              >
-                                Cancel
-                              </button>
-                            </div>
-                          </td>
-                        </>
-                      ) : (
-                        <>
-                          <td className="px-6 py-4 text-sm font-medium text-[#d7dae0]">
-                            {category.name}
-                          </td>
-
-                          <td className="px-6 py-4 text-sm text-[#828997]">
-                            {getDescription(category)}
-                          </td>
-
-                          <td className="px-6 py-4">
-                            <div className="flex justify-end gap-2">
-                              <button
-                                type="button"
-                                onClick={() => startEditing(category)}
-                                className="rounded-lg border border-[#3e4451] px-3 py-2 text-xs font-medium text-[#abb2bf] hover:bg-[#282c34] hover:text-[#d19a66]"
-                              >
-                                Edit
-                              </button>
-
-                              <button
-                                type="button"
-                                onClick={() =>
-                                  handleDeleteCategory(category.id)
-                                }
-                                disabled={deletingId === category.id}
-                                className="rounded-lg border border-[#e06c75]/40 px-3 py-2 text-xs font-medium text-[#e06c75] hover:bg-[#e06c75]/10 disabled:cursor-not-allowed disabled:opacity-50"
-                              >
-                                {deletingId === category.id
-                                  ? "Deleting..."
-                                  : "Delete"}
-                              </button>
-                            </div>
-                          </td>
-                        </>
-                      )}
-                    </tr>
-                  );
-                })}
+                    <td className="px-6 py-4 text-sm text-[#828997]">
+                      {getDescription(category)}
+                    </td>
+                  </tr>
+                ))}
               </tbody>
             </table>
           </div>
